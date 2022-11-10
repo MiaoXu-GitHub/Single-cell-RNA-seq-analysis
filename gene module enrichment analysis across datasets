@@ -1,0 +1,36 @@
+miao <- readxl::read_xlsx("/broad/xavierlab_datadeposit/ajaiswal/Gut_Circuits/analysis/tables/qtl-genelist-grouped -Miao-for Alok.xlsx", sheet=3,  col_names = F)
+miao <- readxl::read_xlsx("/Volumes/broad_xavierlab_datadeposit/ajaiswal/Gut_Circuits/analysis/tables/qtl-genelist-grouped -Miao-for Alok.xlsx", sheet=3,  col_names = F)
+
+uc <- readRDS("/broad/xavierlab_datadeposit/ajaiswal/UC/processed_data/UC_Atlas.rds")
+uc <- NormalizeData(uc)
+
+library(nichenetr)
+
+# Add module score
+for(i in 1:nrow(miao)){
+  topic.name <- miao$...2[i]
+  topic.genes <- miao$...3[i]
+  topic.genes <- unlist(strsplit(topic.genes, "\\,"))
+  topic.genes <- na.omit(convert_mouse_to_human_symbols(topic.genes))
+  uc <- AddModuleScore(uc, features = list(topic.genes), name=topic.name)
+}
+
+colnames(uc@meta.data)[15:46] <- gsub('_genes1', '',  colnames(uc@meta.data)[15:46])
+
+gorder1 <- colnames(uc@meta.data)[15:34] 
+gorder2 <- colnames(uc@meta.data)[35:46] 
+
+library(ggplot2)
+
+pdf("/broad/xavierlab_datadeposit/ajaiswal/Gut_Circuits/analysis/plots/features/Miao_ILCs_Topics_ModScore_UC_Manuscript.pdf", height = 3.5, width = 7)
+p1 <-  DotPlot(uc, features = gorder1, dot.scale = 1.5,scale.by = "radius", cols = "RdYlBu", scale = T) 
+p1 <- p1 +  RotatedAxis() + ggtitle("")  + coord_flip() + theme(axis.text.x=element_text(size=5), axis.text.y=element_text(size=7))
+plot(p1)  
+dev.off()
+
+
+pdf("/broad/xavierlab_datadeposit/ajaiswal/Gut_Circuits/analysis/plots/features/Miao_ILCs_TopicsQTL_ModScore_UC_Manuscript.pdf", height = 3, width = 7)
+p1 <-  DotPlot(uc, features = gorder2, dot.scale = 1.5,scale.by = "radius", cols = "RdYlBu", scale = T) 
+p1 <- p1 +  RotatedAxis() + ggtitle("")  + coord_flip() + theme(axis.text.x=element_text(size=5), axis.text.y=element_text(size=7))
+plot(p1)  
+dev.off()
